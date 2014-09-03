@@ -12,6 +12,9 @@ public class GrepProcess implements MigratableProcess
 	private TransactionalFileInputStream  inFile;
 	private TransactionalFileOutputStream outFile;
 	private String query;
+	
+	transient private PrintStream out;
+	transient private BufferedReader in;
 
 	private volatile boolean suspending = false;
 
@@ -26,43 +29,37 @@ public class GrepProcess implements MigratableProcess
 		inFile = new TransactionalFileInputStream(args[1]);
 		outFile = new TransactionalFileOutputStream(args[2], false);
 	}
+	
+	public boolean continueRunning() throws Exception
+	{
+		if (in == null) { // then both in and out should be null
+			out = new PrintStream(outFile);
+			in = new BufferedReader(new InputStreamReader(inFile));
+		}
+		String line = in.readLine();
+		
+		if (line == null) return false;
+		
+		if (line.contains(query)) {
+			out.println(line);
+		}
+		
+		// Make grep take longer so that we don't require extremely large files for interesting results
+		ProcessManager.log(toString(), "Sleeping (still running)");
+		Thread.sleep(1000);
+		
+		return true;
+	}
 
 	public void run()
 	{
-		PrintStream out = new PrintStream(outFile);
-		BufferedReader in = new BufferedReader(new InputStreamReader(inFile));
-		
 		ProcessManager.log(toString(), "RUNNING");
-		
 	
 		try {
-			while (!suspending) {
-				
-				
-				String line = in.readLine();
-				
-				
-
-				if (line == null) break;
-				
-				if (line.contains(query)) {
-					out.println(line);
-				}
-				
-				
-				
-				// Make grep take longer so that we don't require extremely large files for interesting results
-				try {
-					ProcessManager.log(toString(), "Sleeping (still running)");
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					System.err.println ("GrepProcess: Interrupted: " + e);
-				}
-			}
-		} catch (EOFException e) {
-			System.err.println ("GrepProcess: EOF: " + e);
-		} catch (IOException e) {
-			System.err.println ("GrepProcess: IO: " + e);
+			while (!suspending && continueRunning());
+		} catch (Exception e) {
+			ProcessManager.error(toString(), e.getMessage());
+			e.printStackTrace();
 		}
 
 		ProcessManager.log(toString(), "EXITING");

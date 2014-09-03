@@ -20,6 +20,10 @@ public class ProcessManager {
 		System.out.println("[" + processName + "] " + message);
 	}
 	
+	public static void error (String processName, String message) {
+		System.err.println("[" + processName + "] " + message);
+	}
+	
 	
 	public  ProcessManager (String processName, String []s) throws Exception{
 		log(pm, "Starting new thread for \"" + processName + "\"");
