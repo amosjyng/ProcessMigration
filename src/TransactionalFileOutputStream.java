@@ -14,12 +14,10 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	private static final long serialVersionUID = 1257451613214481934L;
 	private String fileName;
 	private long loc;
-	private boolean migrated;
 	
 	TransactionalFileOutputStream(String fileName, boolean migrated){
 		this.fileName = fileName;
 		this.loc = 0;
-		this.migrated = migrated;
 	}
 
 	@Override
