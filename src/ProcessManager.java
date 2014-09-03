@@ -14,8 +14,16 @@ public class ProcessManager {
 	
 	FileOutputStream fos;
 	
+	private static String pm = "ProcessManager";
+	
+	public static void log (String processName, String message) {
+		System.out.println("[" + processName + "] " + message);
+	}
+	
 	
 	public  ProcessManager (String processName, String []s) throws Exception{
+		log(pm, "Starting new thread for \"" + processName + "\"");
+		
 		// looked up http://www.rgagnon.com/javadetails/java-0351.html
 		ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) s);
 		fos = new FileOutputStream("temp.out");
@@ -31,9 +39,11 @@ public class ProcessManager {
 		
 	}
 	public void migrate() throws InterruptedException, IOException, ClassNotFoundException{
-		//Thread.sleep(100);
-		//t.sleep(1000);
+		log(pm, "Migrating thread for \"" + ins.toString() + "\"");
+		
+		log(pm, "Telling \"" + ins.toString() + "\" to suspend.");
 		ins.suspend();
+		log(pm, "Writing out \"" + ins.toString() + "\"");
 		oos.writeObject(ins);
 		
 		
@@ -43,7 +53,7 @@ public class ProcessManager {
 		
 		
 		ins = (MigratableProcess)ois.readObject();
-		System.out.println("After Deserialize");
+		log(pm, "Reading in \"" + ins.toString() + "\"");
 		t=new Thread(ins);
 		t.start();
 		
@@ -55,10 +65,10 @@ public class ProcessManager {
 		s[0]="abcde";
 		s[1]="1.txt";
 		s[2]="2.txt";
-		System.out.print("haha");
 		
 		ProcessManager a=new ProcessManager("GrepProcess", s);
 		a.launch();
+		Thread.sleep(1000);
 		a.migrate();
 		
 		

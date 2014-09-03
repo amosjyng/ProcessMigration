@@ -13,7 +13,7 @@ public class GrepProcess implements MigratableProcess
 	private TransactionalFileOutputStream outFile;
 	private String query;
 
-	private volatile boolean suspending;
+	private volatile boolean suspending = false;
 
 	public GrepProcess(String args[]) throws Exception
 	{
@@ -30,44 +30,48 @@ public class GrepProcess implements MigratableProcess
 	public void run()
 	{
 		PrintStream out = new PrintStream(outFile);
-		DataInputStream in = new DataInputStream(inFile);
+		BufferedReader in = new BufferedReader(new InputStreamReader(inFile));
+		
+		ProcessManager.log(toString(), "RUNNING");
 		
 	
 		try {
 			while (!suspending) {
 				
-				String line = in.readLine();
 				
-				System.out.println("lala");
+				String line = in.readLine();
 				
 				
 
-				if (line == null) break;
+				if (line == null)// break;
 				
 				if (line.contains(query)) {
 					out.println(line);
 				}
 				
+				
+				
 				// Make grep take longer so that we don't require extremely large files for interesting results
 				try {
+					ProcessManager.log(toString(), "Sleeping (still running)");
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					// ignore it
+					System.err.println ("GrepProcess: Interrupted: " + e);
 				}
 			}
 		} catch (EOFException e) {
-			//End of File
+			System.err.println ("GrepProcess: EOF: " + e);
 		} catch (IOException e) {
-			System.out.println ("GrepProcess: Error: " + e);
+			System.err.println ("GrepProcess: IO: " + e);
 		}
 
-
+		ProcessManager.log(toString(), "EXITING");
 		suspending = false;
 	}
 
 	public void suspend()
 	{
-	  System.out.print("fuck");
+		ProcessManager.log(toString(), "SUSPENDING");
 		suspending = true;
 		while (suspending);
 	}
