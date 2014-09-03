@@ -1,13 +1,31 @@
 import java.io.*;
 
 
-public interface MigratableProcess extends Serializable,Runnable{
+public abstract class MigratableProcess implements Serializable, Runnable{
+	private volatile boolean suspending = false;
+	
+	// Return false to exit the thread
 	public abstract boolean continueRunning() throws Exception;
 	
-	public abstract void suspend();
-
+	public void run()
+	{
+		ProcessManager.log(toString(), "RUNNING");
 	
-	@Override
-    public String toString();
+		try {
+			while (!suspending && continueRunning());
+		} catch (Exception e) {
+			ProcessManager.error(toString(), e.getMessage());
+			e.printStackTrace();
+		}
 
+		ProcessManager.log(toString(), "EXITING");
+		suspending = false;
+	}
+
+	public void suspend()
+	{
+		ProcessManager.log(toString(), "SUSPENDING");
+		suspending = true;
+		while (suspending);
+	}
 }

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.lang.Thread;
 import java.lang.InterruptedException;
 
-public class GrepProcess implements MigratableProcess
+public class GrepProcess extends MigratableProcess
 {
 	private TransactionalFileInputStream  inFile;
 	private TransactionalFileOutputStream outFile;
@@ -15,8 +15,6 @@ public class GrepProcess implements MigratableProcess
 	
 	transient private PrintStream out;
 	transient private BufferedReader in;
-
-	private volatile boolean suspending = false;
 
 	public GrepProcess(String args[]) throws Exception
 	{
@@ -50,27 +48,4 @@ public class GrepProcess implements MigratableProcess
 		
 		return true;
 	}
-
-	public void run()
-	{
-		ProcessManager.log(toString(), "RUNNING");
-	
-		try {
-			while (!suspending && continueRunning());
-		} catch (Exception e) {
-			ProcessManager.error(toString(), e.getMessage());
-			e.printStackTrace();
-		}
-
-		ProcessManager.log(toString(), "EXITING");
-		suspending = false;
-	}
-
-	public void suspend()
-	{
-		ProcessManager.log(toString(), "SUSPENDING");
-		suspending = true;
-		while (suspending);
-	}
-
 }
