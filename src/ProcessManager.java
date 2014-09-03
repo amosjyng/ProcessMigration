@@ -18,7 +18,7 @@ public class ProcessManager {
 	public  ProcessManager (String []s) throws Exception{
 
 		ins=new GrepProcess(s);
-		fos = new FileOutputStream("/Users/hanz/Desktop/Dropbox/Workspace/MigratableProcess/src/temp.out");
+		fos = new FileOutputStream("temp.out");
 		oos = new ObjectOutputStream(fos);
 		
 	}
@@ -53,8 +53,8 @@ public class ProcessManager {
 	public static void main(String[] args) throws Exception {
 		String []s=new String[3];
 		s[0]="abcde";
-		s[1]="/Users/hanz/Desktop/Dropbox/Workspace/MigratableProcess/src/1.txt";
-		s[2]="/Users/hanz/Desktop/Dropbox/Workspace/MigratableProcess/src/2.txt";
+		s[1]="1.txt";
+		s[2]="2.txt";
 		System.out.print("haha");
 		
 		ProcessManager a=new ProcessManager(s);
