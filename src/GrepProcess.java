@@ -43,7 +43,7 @@ public class GrepProcess implements MigratableProcess
 				
 				
 
-				if (line == null)// break;
+				if (line == null) break;
 				
 				if (line.contains(query)) {
 					out.println(line);
