@@ -15,9 +15,9 @@ public class ProcessManager {
 	FileOutputStream fos;
 	
 	
-	public  ProcessManager (String []s) throws Exception{
-
-		ins=new GrepProcess(s);
+	public  ProcessManager (String processName, String []s) throws Exception{
+		// looked up http://www.rgagnon.com/javadetails/java-0351.html
+		ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) s);
 		fos = new FileOutputStream("temp.out");
 		oos = new ObjectOutputStream(fos);
 		
@@ -57,7 +57,7 @@ public class ProcessManager {
 		s[2]="2.txt";
 		System.out.print("haha");
 		
-		ProcessManager a=new ProcessManager(s);
+		ProcessManager a=new ProcessManager("GrepProcess", s);
 		a.launch();
 		a.migrate();
 		
