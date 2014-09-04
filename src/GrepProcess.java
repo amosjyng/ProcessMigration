@@ -42,10 +42,6 @@ public class GrepProcess extends MigratableProcess
 			out.println(line);
 		}
 		
-		// Make grep take longer so that we don't require extremely large files for interesting results
-		ProcessManager.log(toString(), "Sleeping (still running)");
-		Thread.sleep(1000);
-		
 		return true;
 	}
 }

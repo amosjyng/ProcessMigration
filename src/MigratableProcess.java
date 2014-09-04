@@ -2,6 +2,7 @@ import java.io.*;
 
 
 public abstract class MigratableProcess implements Serializable, Runnable{
+	public static boolean pauseEveryLoop = false;
 	public int id;
 	private transient volatile boolean suspending = false;
 	
@@ -13,7 +14,12 @@ public abstract class MigratableProcess implements Serializable, Runnable{
 		ProcessManager.log(toString(), "RUNNING");
 	
 		try {
-			while (!suspending && continueRunning());
+			while (!suspending && continueRunning()) {
+				if (pauseEveryLoop)	{
+					ProcessManager.log(toString(), "Sleeping (still running)");
+					Thread.sleep(1000);
+				}
+			}
 		} catch (Exception e) {
 			ProcessManager.error(toString(), e.getMessage());
 			e.printStackTrace();
