@@ -22,7 +22,7 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 
 	@Override
 	public void write(int arg0) throws IOException {
-		FileOutputStream fos = new FileOutputStream(fileName);
+		FileOutputStream fos = new FileOutputStream(fileName, true);
 		fos.write(arg0);
 		fos.close();
 		loc++;
@@ -30,7 +30,7 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	
 	@Override
 	public void write(byte[] arg0) throws IOException {
-		FileOutputStream fos = new FileOutputStream(fileName);
+		FileOutputStream fos = new FileOutputStream(fileName, true);
 		fos.write(arg0);
 		fos.close();
 		loc += arg0.length;
@@ -38,7 +38,7 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	
 	@Override
 	public void write(byte[] arg0, int arg1, int arg2) throws IOException {
-		FileOutputStream fos = new FileOutputStream(fileName);
+		FileOutputStream fos = new FileOutputStream(fileName, true);
 		fos.write(arg0, arg1, arg2);
 		fos.close();
 		loc += arg2;
