@@ -9,9 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ProcessManager {
-	
 	private static List<MigratableProcess> processes = new ArrayList<MigratableProcess>();
 	private static BufferedReader stdin = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+	private static int id_count = 0;
 	
 	private static String pm = "ProcessManager";
 	
@@ -60,8 +60,11 @@ public class ProcessManager {
 	}
 	
 	private static MigratableProcess spawn(String processName, String[] args) throws Exception {
+		log(pm, "Spawning " + processName + "#" + id_count);
+		
 		// looked up http://www.rgagnon.com/javadetails/java-0351.html
 		MigratableProcess ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) args);
+		ins.id = id_count++;
 		
 		new Thread(ins).start();
 		return ins;
@@ -87,7 +90,6 @@ public class ProcessManager {
 				}
 			}
 			else {
-				log(pm, "Spawning \"" + command + "\"");
 				addProcess(spawn(command, Arrays.copyOf(Arrays.asList(stdinArgs).subList(1, stdinArgs.length).toArray(), stdinArgs.length - 1, String[].class)));
 			}
 			
