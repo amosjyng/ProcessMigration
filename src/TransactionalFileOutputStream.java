@@ -15,9 +15,14 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	private String fileName;
 	private long loc;
 	
-	TransactionalFileOutputStream(String fileName, boolean migrated){
+	TransactionalFileOutputStream(String fileName) throws Exception {
+		this(fileName, false);
+	}
+	
+	TransactionalFileOutputStream(String fileName, boolean append) throws Exception {
 		this.fileName = fileName;
 		this.loc = 0;
+		new FileOutputStream(fileName, append).close();
 	}
 
 	@Override
