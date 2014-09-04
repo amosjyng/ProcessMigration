@@ -3,6 +3,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class ProcessManager {
 	
@@ -11,8 +13,13 @@ public class ProcessManager {
 	Thread t;
 	
 	ObjectOutputStream oos ;
+	ObjectInputStream is;
 	
 	FileOutputStream fos;
+	
+	ServerSocket server;
+	Socket sock;
+	Socket client;
 	
 	private static String pm = "ProcessManager";
 	
@@ -31,8 +38,17 @@ public class ProcessManager {
 		// looked up http://www.rgagnon.com/javadetails/java-0351.html
 		ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) s);
 		fos = new FileOutputStream("temp.out");
-		oos = new ObjectOutputStream(fos);
 		
+
+    server=new ServerSocket (8888);
+		client=new Socket("127.0.0.1",8888);
+    
+		sock=server.accept();
+		
+		oos = new ObjectOutputStream(client.getOutputStream());
+		is=new ObjectInputStream(sock.getInputStream());
+		
+    
 	}
 	
 	
@@ -52,11 +68,12 @@ public class ProcessManager {
 		
 		
 		
-		FileInputStream fis = new FileInputStream("temp.out");
-		ObjectInputStream ois = new ObjectInputStream(fis);
+		
+		//FileInputStream fis = new FileInputStream("temp.out");
+		//ObjectInputStream ois = new ObjectInputStream(is);
 		
 		
-		ins = (MigratableProcess)ois.readObject();
+		ins = (MigratableProcess)is.readObject();
 		log(pm, "Reading in \"" + ins.toString() + "\"");
 		t=new Thread(ins);
 		t.start();
