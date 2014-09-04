@@ -52,7 +52,7 @@ public class ProcessManager {
 		t.start();
 	}
 	
-	private static MigratableProcess spawnNewProcess(String processName, String[] args) throws Exception {
+	private static MigratableProcess spawn(String processName, String[] args) throws Exception {
 		// looked up http://www.rgagnon.com/javadetails/java-0351.html
 		MigratableProcess ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) args);
 		
@@ -72,13 +72,10 @@ public class ProcessManager {
 			String processName = stdinArgs[0];
 			
 			log(pm, "Starting new thread for \"" + processName + "\"");
-			processes.add(spawnNewProcess(processName, Arrays.copyOf(Arrays.asList(stdinArgs).subList(1, stdinArgs.length).toArray(), stdinArgs.length - 1, String[].class)));
+			processes.add(spawn(processName, Arrays.copyOf(Arrays.asList(stdinArgs).subList(1, stdinArgs.length).toArray(), stdinArgs.length - 1, String[].class)));
 			
 			line = prompt();
 		}
-		
-		Thread.sleep(1000);
-		//a.migrate();
 	}
 
 
