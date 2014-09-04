@@ -18,7 +18,7 @@ public class CopyProcess extends MigratableProcess {
 		}
 		
 		inFile = new TransactionalFileInputStream(args[0]);
-		outFile = new TransactionalFileOutputStream(args[1], false);
+		outFile = new TransactionalFileOutputStream(args[1]);
 	}
 	
 	public boolean continueRunning() throws Exception

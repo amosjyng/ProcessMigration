@@ -25,7 +25,7 @@ public class GrepProcess extends MigratableProcess
 		
 		query = args[0];
 		inFile = new TransactionalFileInputStream(args[1]);
-		outFile = new TransactionalFileOutputStream(args[2], false);
+		outFile = new TransactionalFileOutputStream(args[2]);
 	}
 	
 	public boolean continueRunning() throws Exception
