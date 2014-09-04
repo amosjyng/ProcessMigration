@@ -12,11 +12,14 @@ public class ProcessManager {
 	private static List<MigratableProcess> processes = new ArrayList<MigratableProcess>();
 	private static BufferedReader stdin = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
 	private static int id_count = 0;
+	private static boolean debug = false;
 	
 	private static String pm = "ProcessManager";
 	
 	public static void log (String processName, String message) {
-		System.out.println("[" + processName + "] " + message);
+		if (debug) {
+			System.out.println("[" + processName + "] " + message);
+		}
 	}
 	
 	public static void error (String processName, String message) {
@@ -76,6 +79,8 @@ public class ProcessManager {
 	}
 	
 	public static void main(String[] args) throws Exception {
+		debug = args.length == 1 && args[0].equals("--debug");
+		
 		String line = prompt();
 		while (!line.equals("exit")) {
 			String[] stdinArgs = line.split(" ");
