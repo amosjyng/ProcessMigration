@@ -22,7 +22,9 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	TransactionalFileOutputStream(String fileName, boolean append) throws Exception {
 		this.fileName = fileName;
 		this.loc = 0;
+		if (!append) {
 		new FileOutputStream(fileName, append).close();
+		}
 	}
 
 	@Override

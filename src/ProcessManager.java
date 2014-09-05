@@ -1,106 +1,134 @@
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class ProcessManager {
-	private static List<MigratableProcess> processes = new ArrayList<MigratableProcess>();
-	private static BufferedReader stdin = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
-	private static int id_count = 0;
-	private static boolean debug = false;
+	
+	private MigratableProcess ins;
+	
+	
+	int tag;
+	
+	Thread t;
+	
+	ObjectOutputStream oos ;
+	ObjectInputStream is;
+	
+	FileOutputStream fos;
+	
+	ServerSocket server;
+	Socket sock;
+	Socket client;
 	
 	private static String pm = "ProcessManager";
 	
 	public static void log (String processName, String message) {
-		if (debug) {
-			System.out.println("[" + processName + "] " + message);
-		}
+		System.out.println("[" + processName + "] " + message);
 	}
 	
 	public static void error (String processName, String message) {
 		System.err.println("[" + processName + "] " + message);
 	}
-	
-	public static MigratableProcess addProcess(MigratableProcess mp) {
-		processes.add(mp);
-		return mp;
+	public void ServerBuild(int port) throws IOException{
+	  server=new ServerSocket (port);
+	}
+	public void ClientConnect(String ip, int port) throws UnknownHostException, IOException{
+	  
+	  client=new Socket(ip,port);
+	}
+	public void ServerAccept() throws IOException{
+	  sock=server.accept();
 	}
 	
-	public static void removeProcess(MigratableProcess mp) {
-		processes.remove(mp);
+	public  ProcessManager (String processName, String []s,String ip, int port,int tag_input) throws Exception{
+		log(pm, "Starting new thread for \"" + processName + "\"");
+		
+		// looked up http://www.rgagnon.com/javadetails/java-0351.html
+		ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) s);
+		fos = new FileOutputStream("temp.out");
+		
+		tag=tag_input;
+
+    //server=new ServerSocket (8888);
+		//client=new Socket("127.0.0.1",8888);
+    
+		//sock=server.accept();
+		
+	
+		if (tag==1){    // this is server
+		  ServerBuild(port);
+		  ServerAccept();
+		  oos = new ObjectOutputStream(sock.getOutputStream());
+		}
+		else{
+		  ClientConnect(ip,port);
+		  
+	    
+		  is=new ObjectInputStream(client.getInputStream());
+		}
 	}
 	
-	public static void migrate(MigratableProcess ins) throws InterruptedException, IOException, ClassNotFoundException{
+	
+	public void launch(){
+		
+		t=new Thread(ins);
+		t.start();
+		
+	}
+	public void migrate() throws InterruptedException, IOException, ClassNotFoundException{
 		log(pm, "Migrating thread for \"" + ins.toString() + "\"");
 		
 		log(pm, "Telling \"" + ins.toString() + "\" to suspend.");
 		ins.suspend();
 		log(pm, "Writing out \"" + ins.toString() + "\"");
-		ObjectOutputStream oos ;
-		
-		
-		FileOutputStream fos;
-		fos = new FileOutputStream("temp.out");
-		oos = new ObjectOutputStream(fos);
 		oos.writeObject(ins);
-		
-		processes.remove(ins);
-		
+		//System.out.println("wowowo");
 		
 		
-		FileInputStream fis = new FileInputStream("temp.out");
-		ObjectInputStream ois = new ObjectInputStream(fis);
 		
 		
-		MigratableProcess newIns = addProcess((MigratableProcess)ois.readObject());
-		log(pm, "Resuming \"" + newIns.toString() + "\"");
-		new Thread(newIns).start();
-	}
-	
-	private static MigratableProcess spawn(String processName, String[] args) throws Exception {
-		log(pm, "Spawning " + processName + "#" + id_count);
+		//FileInputStream fis = new FileInputStream("temp.out");
+		//ObjectInputStream ois = new ObjectInputStream(is);
 		
-		// looked up http://www.rgagnon.com/javadetails/java-0351.html
-		MigratableProcess ins = (MigratableProcess)Class.forName(processName).getConstructor(String[].class).newInstance((Object) args);
-		ins.id = id_count++;
 		
-		new Thread(ins).start();
-		return ins;
-	}
-	
-	private static String prompt() throws Exception {
-		System.out.print("> ");
-		return stdin.readLine();
-	}
+		
+		
+		
+}
+public void ReceiveProcess() throws ClassNotFoundException, IOException{
+  
+  ins = (MigratableProcess)is.readObject();
+  
+  log(pm, "Reading in \"" + ins.toString() + "\"");
+  t=new Thread(ins);
+  t.start();
+}
 	
 	public static void main(String[] args) throws Exception {
-		debug = args.length == 1 && args[0].equals("--debug");
+		String []s=new String[3];
+		s[0]="abcde";
+		s[1]="1.txt";
+		s[2]="2.txt";
 		
-		String line = prompt();
-		while (!line.equals("exit")) {
-			String[] stdinArgs = line.split(" ");
-			String command = stdinArgs[0];
-			
-			if (command.equals("migrate")) {
-				migrate(processes.get(Integer.parseInt(stdinArgs[1])));
-			}
-			else if (command.equals("ps")) {
-				for (int i = 0; i < processes.size(); i++) {
-					System.out.println(i + ". " + processes.get(i).toString());
-				}
-			}
-			else {
-				addProcess(spawn(command, Arrays.copyOf(Arrays.asList(stdinArgs).subList(1, stdinArgs.length).toArray(), stdinArgs.length - 1, String[].class)));
-			}
-			
-			line = prompt();
-		}
+		ProcessManager a=new ProcessManager("GrepProcess", s,"127.0.0.1",8886,1);
+		
+		ProcessManager b=new ProcessManager("GrepProcess", s,"127.0.0.1",8886,0);
+		a.launch();
+		//Thread.sleep(1000);
+		a.migrate();
+		
+	  
+    b.ReceiveProcess();
+		
+		
+		
+		
 	}
+	
 
 
 }

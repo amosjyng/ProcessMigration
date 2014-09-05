@@ -2,9 +2,11 @@ import java.io.*;
 
 
 public abstract class MigratableProcess implements Serializable, Runnable{
-	public static boolean pauseEveryLoop = false;
-	public int id;
-	private transient volatile boolean suspending = false;
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private transient volatile boolean suspending = false;
 	
 	// Return false to exit the thread
 	public abstract boolean continueRunning() throws Exception;
@@ -14,24 +16,13 @@ public abstract class MigratableProcess implements Serializable, Runnable{
 		ProcessManager.log(toString(), "RUNNING");
 	
 		try {
-			while (!suspending && continueRunning()) {
-				if (pauseEveryLoop)	{
-					ProcessManager.log(toString(), "Sleeping (still running)");
-					Thread.sleep(1000);
-				}
-			}
+			while (!suspending && continueRunning());
 		} catch (Exception e) {
 			ProcessManager.error(toString(), e.getMessage());
 			e.printStackTrace();
 		}
-		
-		if (suspending) {
-			ProcessManager.log(toString(), "EXITING (suspended)");
-		} else {
-			ProcessManager.log(toString(), "EXITING (finished)");
-			ProcessManager.removeProcess(this);
-		}
-		
+
+		ProcessManager.log(toString(), "EXITING");
 		suspending = false;
 	}
 
@@ -40,10 +31,5 @@ public abstract class MigratableProcess implements Serializable, Runnable{
 		ProcessManager.log(toString(), "SUSPENDING");
 		suspending = true;
 		while (suspending);
-	}
-	
-	@Override
-	public String toString() {
-		return this.getClass().getName() + "#" + id;
 	}
 }

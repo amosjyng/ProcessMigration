@@ -9,7 +9,11 @@ import java.lang.InterruptedException;
 
 public class GrepProcess extends MigratableProcess
 {
-	private TransactionalFileInputStream  inFile;
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private TransactionalFileInputStream  inFile;
 	private TransactionalFileOutputStream outFile;
 	private String query;
 	
@@ -25,22 +29,31 @@ public class GrepProcess extends MigratableProcess
 		
 		query = args[0];
 		inFile = new TransactionalFileInputStream(args[1]);
-		outFile = new TransactionalFileOutputStream(args[2]);
+		outFile = new TransactionalFileOutputStream(args[2], false);
 	}
 	
 	public boolean continueRunning() throws Exception
 	{
 		if (in == null) { // then both in and out should be null
 			out = new PrintStream(outFile);
-			in = new BufferedReader(new InputStreamReader(inFile));
+			in = new BufferedReader (new InputStreamReader(inFile));
+			
 		}
+
+    System.out.println(inFile.loc);
 		String line = in.readLine();
-		
+		System.out.println(line);
+		System.out.println(inFile.loc);
 		if (line == null) return false;
 		
 		if (line.contains(query)) {
 			out.println(line);
+			
 		}
+		
+		// Make grep take longer so that we don't require extremely large files for interesting results
+		ProcessManager.log(toString(), "Sleeping (still running)");
+		Thread.sleep(100);
 		
 		return true;
 	}
