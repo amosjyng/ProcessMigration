@@ -128,7 +128,7 @@ public void ReceiveProcess() throws ClassNotFoundException, IOException{
   new Thread(newIns).start();
   
 }
-	
+	/*
 	public static void main(String[] args) throws Exception {
 	  debug = args.length == 1 && args[0].equals("--debug");
 		ProcessManager p=new ProcessManager("127.0.0.1",8850,!args[0].equals("1"));
@@ -152,7 +152,7 @@ public void ReceiveProcess() throws ClassNotFoundException, IOException{
 			line = prompt();
 		}
 	}
-	
+	*/
 
 
 }
