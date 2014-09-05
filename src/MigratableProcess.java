@@ -2,7 +2,11 @@ import java.io.*;
 
 
 public abstract class MigratableProcess implements Serializable, Runnable{
-	private volatile boolean suspending = false;
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private volatile boolean suspending = false;
 	
 	// Return false to exit the thread
 	public abstract boolean continueRunning() throws Exception;
