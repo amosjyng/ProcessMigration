@@ -9,7 +9,11 @@ import java.lang.InterruptedException;
 
 public class GrepProcess extends MigratableProcess
 {
-	private TransactionalFileInputStream  inFile;
+	/**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private TransactionalFileInputStream  inFile;
 	private TransactionalFileOutputStream outFile;
 	private String query;
 	

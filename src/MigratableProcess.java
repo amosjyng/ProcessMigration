@@ -2,9 +2,11 @@ import java.io.*;
 
 
 public abstract class MigratableProcess implements Serializable, Runnable{
+
 	public static boolean pauseEveryLoop = false;
 	public int id;
 	private transient volatile boolean suspending = false;
+
 	
 	// Return false to exit the thread
 	public abstract boolean continueRunning() throws Exception;
