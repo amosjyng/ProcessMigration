@@ -14,7 +14,6 @@ public class GrepProcess extends MigratableProcess
 	private String query;
 	
 	transient private PrintStream out;
-	transient private BufferedReader in;
 
 	public GrepProcess(String args[]) throws Exception
 	{
@@ -30,11 +29,10 @@ public class GrepProcess extends MigratableProcess
 	
 	public boolean continueRunning() throws Exception
 	{
-		if (in == null) { // then both in and out should be null
+		if (out == null) {
 			out = new PrintStream(outFile);
-			in = new BufferedReader(new InputStreamReader(inFile));
 		}
-		String line = in.readLine();
+		String line = inFile.readLine();
 		
 		if (line == null) return false;
 		

@@ -27,7 +27,7 @@ public class TransactionalFileInputStream extends InputStream implements Seriali
 		fis.skip(loc);
 		int value = fis.read();
 		fis.close();
-		if(value!=-1 && value=='\n')	loc++;
+		if(value!=-1)	loc++;
 		return value;
 	}
 
@@ -50,22 +50,23 @@ public class TransactionalFileInputStream extends InputStream implements Seriali
 		if(value!=-1)	loc += value;
 		return value;
 	}
-	/*
-	public int read() throws IOException{
-	  FileInputStream fis = new FileInputStream(fileName);
-    fis.skip(loc);
-    int value=0;
-    while (fis.read()!='\n'){
-      value += fis.read();
-    }
-    fis.close();
-    loc+=value;
-    return value;
-    
+	
+	
+	public String readLine() throws IOException {
+		StringBuilder line = new StringBuilder();
+
+		int nextChar = read();
+		while (nextChar != (int)'\n' && nextChar != -1) {
+			line.append((char)nextChar);
+			nextChar = read();
+		}
+		
+		if (nextChar == -1 && line.toString().isEmpty()) {
+			return null;
+		} else {
+			return line.toString();
+		}
 	}
-	*/
-	
-	
 	
 
 	@Override

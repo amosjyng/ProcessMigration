@@ -11,7 +11,7 @@ public class Server {
     ProcessManager a=new ProcessManager("127.0.0.1",8888,1);
     
     a.spawn("GrepProcess", s);
-    //a.migrate(a.processes.get(0));
+    a.migrate(a.processes.get(0));
     
     while (true); // stay alive
   

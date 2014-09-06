@@ -8,7 +8,6 @@ public class CopyProcess extends MigratableProcess {
 	private TransactionalFileOutputStream outFile;
 	
 	transient private PrintStream out;
-	transient private BufferedReader in;
 	
 	public CopyProcess(String args[]) throws Exception
 	{
@@ -23,11 +22,10 @@ public class CopyProcess extends MigratableProcess {
 	
 	public boolean continueRunning() throws Exception
 	{
-		if (in == null) { // then both in and out should be null
+		if (out == null) {
 			out = new PrintStream(outFile);
-			in = new BufferedReader(new InputStreamReader(inFile));
 		}
-		String line = in.readLine();
+		String line = inFile.readLine();
 		
 		if (line == null) return false;
 		
