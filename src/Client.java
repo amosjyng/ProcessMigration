@@ -6,20 +6,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class Client {  
+public class Client {
   private static OutputStreamWriter bs;
-  
+
   private static ObjectInputStream is;
 
   private static boolean debug = true;
 
-  private static int serverPort;
-  
   private static int port;
 
   public static void log(String message) {
     if (debug) {
-      System.out.println("[Client:" + serverPort + "] " + message);
+      System.out.println("[Client:" + port + "] " + message);
     }
   }
 
@@ -31,16 +29,15 @@ public class Client {
       log("Received " + ins.toString());
       // when receiving, run single-threaded
       ins.run();
-      
+
       log("Notifying server that task has been completed.");
       bs.write(ins.toString() + " has completed.\n");
       bs.flush();
     }
   }
-  
+
   public static void main(String[] args) throws Exception {
     port = Integer.parseInt(args[1]);
-    serverPort = port;
     log("Connecting to server at " + args[0] + " on port " + args[1] + "...");
     is = new ObjectInputStream(new Socket(args[0], port).getInputStream());
     // port + 1 so we can easily debug on the same machine
@@ -49,7 +46,7 @@ public class Client {
     log("Server has connected.");
     try {
       receiveProcesses();
-    } catch (SocketException e) {
+    } catch (Exception e) {
       log("It appears the server has exited. Exiting as well.");
     }
   }

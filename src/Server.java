@@ -30,8 +30,10 @@ public class Server {
 
     private InputStreamReader br;
 
-    public ClientListener(String address, int port) throws UnknownHostException, IOException {
+    public ClientListener(String address, int port) throws UnknownHostException, IOException, InterruptedException {
       this.port = port;
+      // sleep for a bit to allow other machine to start listening
+      Thread.sleep(500);
       br = new InputStreamReader(new Socket(address, port).getInputStream());
       Server.log("Connected to client.");
     }
