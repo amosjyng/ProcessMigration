@@ -22,8 +22,8 @@ public class Client {
   }
 
   public static void receiveProcesses() throws ClassNotFoundException, IOException {
+    ObjectInputStream is = new ObjectInputStream(serverSocket.getInputStream());
     while (true) {
-      ObjectInputStream is = new ObjectInputStream(serverSocket.getInputStream());
       MigratableProcess ins = (MigratableProcess) is.readObject();
 
       log("Received " + ins.toString());

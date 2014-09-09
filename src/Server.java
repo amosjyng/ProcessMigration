@@ -6,7 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Server {
   public static List<MigratableProcess> processes = new ArrayList<MigratableProcess>();
@@ -18,14 +20,16 @@ public class Server {
 
   private static boolean debug = true;
 
-  static ServerSocket serverSocket;
-
-  static Socket socket;
+  private static Map<Integer, ObjectOutputStream> outputStreams = new HashMap<Integer, ObjectOutputStream>();
 
   public static void log(String message) {
     if (debug) {
       System.out.println("[Server] " + message);
     }
+  }
+
+  public static void error(String message) {
+    System.err.println("[Server] " + message);
   }
 
   public static MigratableProcess addProcess(MigratableProcess mp) {
@@ -49,28 +53,23 @@ public class Server {
     return ins;
   }
 
-  public static void ServerBuild(int port) throws IOException {
-    serverSocket = new ServerSocket(port);
+  public static void ServerAccept(int port) throws IOException {
+    outputStreams.put(port, new ObjectOutputStream(new ServerSocket(port).accept().getOutputStream()));
   }
 
-  public static void ServerAccept() throws IOException {
-    socket = serverSocket.accept();
-  }
-
-  public static void migrate(MigratableProcess ins) throws InterruptedException, IOException,
-          ClassNotFoundException {
-    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+  public static void migrate(MigratableProcess ins, ObjectOutputStream oos) throws InterruptedException,
+          IOException, ClassNotFoundException {
     log("Migrating thread for \"" + ins.toString() + "\"");
 
     log("Telling \"" + ins.toString() + "\" to suspend.");
     ins.suspend();
     if (ins.isFinished()) {
       log(ins.toString() + " is already finished. No need to migrate.");
-    }
-    else {
+    } else {
       log("Sending out \"" + ins.toString() + "\"");
       oos.writeObject(ins);
     }
+    oos.reset();
   }
 
   private static String prompt() throws Exception {
@@ -79,11 +78,12 @@ public class Server {
   }
 
   public static void main(String[] args) throws Exception {
-    int port = Integer.parseInt(args[0]);
-    ServerBuild(port);
-    log("Waiting for connection on port " + port);
-    ServerAccept();
-    log("Accepted connection on port " + port);
+    for (String arg : args) {
+      int port = Integer.parseInt(arg);
+      log("Waiting for connection on port " + port);
+      ServerAccept(port);
+      log("Accepted connection on port " + port);
+    }
 
     String line = prompt();
     while (!line.equals("exit")) {
@@ -91,7 +91,16 @@ public class Server {
       String command = stdinArgs[0];
 
       if (command.equals("migrate")) {
-        migrate(processes.get(Integer.parseInt(stdinArgs[1])));
+        if (stdinArgs.length != 4) {
+          error("usage: migrate <process #> to <port #>");
+        }
+        else {
+          try {
+            migrate(processes.get(Integer.parseInt(stdinArgs[1])), outputStreams.get(Integer.parseInt(stdinArgs[3])));
+          } catch (IndexOutOfBoundsException e) {
+            error("No such process #" + stdinArgs[1]);
+          }
+        }
       } else if (command.equals("ps")) {
         for (int i = 0; i < processes.size(); i++) {
           System.out.println(i + ". " + processes.get(i).toString());
