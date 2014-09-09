@@ -57,8 +57,9 @@ public class Server {
     outputStreams.put(port, new ObjectOutputStream(new ServerSocket(port).accept().getOutputStream()));
   }
 
-  public static void migrate(MigratableProcess ins, ObjectOutputStream oos) throws InterruptedException,
+  public static void migrate(MigratableProcess ins, int port) throws InterruptedException,
           IOException, ClassNotFoundException {
+    ObjectOutputStream oos = outputStreams.get(port);
     log("Migrating thread for \"" + ins.toString() + "\"");
 
     log("Telling \"" + ins.toString() + "\" to suspend.");
@@ -66,8 +67,8 @@ public class Server {
     if (ins.isFinished()) {
       log(ins.toString() + " is already finished. No need to migrate.");
     } else {
-      log("Sending out \"" + ins.toString() + "\"");
       oos.writeObject(ins);
+      log("Sent " + ins.toString() + " to client on port " + port);
     }
     oos.reset();
   }
@@ -96,7 +97,7 @@ public class Server {
         }
         else {
           try {
-            migrate(processes.get(Integer.parseInt(stdinArgs[1])), outputStreams.get(Integer.parseInt(stdinArgs[3])));
+            migrate(processes.get(Integer.parseInt(stdinArgs[1])), Integer.parseInt(stdinArgs[3]));
           } catch (IndexOutOfBoundsException e) {
             error("No such process #" + stdinArgs[1]);
           }

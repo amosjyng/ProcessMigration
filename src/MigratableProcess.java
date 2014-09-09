@@ -31,7 +31,7 @@ public abstract class MigratableProcess implements Serializable, Runnable {
       while (!suspending && !finished) {
         finished = !continueRunning();
         if (pauseEveryLoop) {
-          log("Sleeping (still running)");
+          //log("Sleeping (still running)");
           Thread.sleep(1000);
         }
       }
