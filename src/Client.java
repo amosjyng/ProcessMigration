@@ -1,17 +1,32 @@
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.Socket;
 
 public class Client {
-
-  public static void main(String[] args) throws Exception {
-    // TODO Auto-generated method stub
-    
-    String []s=new String[3];
-    s[0]="U";
-    s[1]="1.txt";
-    s[2]="2.txt";
-    
-    ProcessManager b=new ProcessManager("127.0.0.1",8888,0);
-    b.ReceiveProcess();
-
+  static Socket serverSocket;
+  
+  private static boolean debug = true;
+  
+  private static int port;
+  
+  public static void log(String message) {
+    if (debug) {
+      System.out.println("[Client:" + port + "] " + message);
+    }
   }
 
+  public static void main(String[] args) throws Exception {
+    port = Integer.parseInt(args[1]);
+    serverSocket = new Socket(args[0], port);
+    receiveProcess();
+  }
+  
+  public static void receiveProcess() throws ClassNotFoundException, IOException {
+    ObjectInputStream is = new ObjectInputStream(serverSocket.getInputStream());
+    MigratableProcess ins = (MigratableProcess) is.readObject();
+
+    log("Received " + ins.toString());
+    // when receiving, run single-threaded
+    ins.run();
+  }
 }

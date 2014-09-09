@@ -1,45 +1,65 @@
 import java.io.*;
 
 public abstract class MigratableProcess implements Serializable, Runnable {
-  public static boolean pauseEveryLoop = false;
+  public static boolean pauseEveryLoop = true;
 
   public int id;
 
+  public boolean debug = true;
+  
+  public boolean finished = false;
+
   private transient volatile boolean suspending = false;
+
+  public void log(String message) {
+    if (debug) {
+      System.out.println("[" + toString() + "] " + message);
+    }
+  }
+  
+  public void error(String message) {
+    System.err.println("[" + toString() + "] " + message);
+  }
 
   // Return false to exit the thread
   public abstract boolean continueRunning() throws Exception;
 
   public void run() {
-    ProcessManager.log(toString(), "RUNNING");
+    log("RUNNING");
 
     try {
-      while (!suspending && continueRunning()) {
+      while (!suspending && !finished) {
+        finished = !continueRunning();
         if (pauseEveryLoop) {
-          ProcessManager.log(toString(), "Sleeping (still running)");
+          log("Sleeping (still running)");
           Thread.sleep(1000);
         }
       }
     } catch (Exception e) {
-      ProcessManager.error(toString(), e.getMessage());
+      error(e.getMessage());
       e.printStackTrace();
     }
 
     if (suspending) {
-      ProcessManager.log(toString(), "EXITING (suspended)");
+      log("EXITING (suspended)");
     } else {
-      ProcessManager.log(toString(), "EXITING (finished)");
-      ProcessManager.removeProcess(this);
+      log("EXITING (finished)");
+      // notify server or something
+      // ProcessManager.removeProcess(this);
     }
 
     suspending = false;
   }
 
   public void suspend() {
-    ProcessManager.log(toString(), "SUSPENDING");
+    log("SUSPENDING");
     suspending = true;
-    while (suspending)
+    while (!finished && suspending)
       ;
+  }
+  
+  public boolean isFinished() {
+    return finished;
   }
 
   @Override
