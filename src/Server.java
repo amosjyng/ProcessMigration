@@ -48,7 +48,7 @@ public class Server {
             line.append((char) nextChar);
             nextChar = br.read();
           }
-          System.out.println("[Client:" + port + "] " + line.toString());
+          System.out.println("[Client:" + (port - 1) + "] " + line.toString());
         } catch (IOException e) {
           error("Can't read line");
           e.printStackTrace();
