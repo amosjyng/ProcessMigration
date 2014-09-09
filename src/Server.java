@@ -1,9 +1,12 @@
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +24,36 @@ public class Server {
   private static boolean debug = true;
 
   private static Map<Integer, ObjectOutputStream> outputStreams = new HashMap<Integer, ObjectOutputStream>();
+
+  private static class ClientListener implements Runnable {
+    private int port;
+
+    private InputStreamReader br;
+
+    public ClientListener(String address, int port) throws UnknownHostException, IOException {
+      this.port = port;
+      br = new InputStreamReader(new Socket(address, port).getInputStream());
+      Server.log("Connected to client.");
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          StringBuilder line = new StringBuilder();
+          int nextChar = br.read();
+          while (nextChar != (int) '\n' && nextChar != -1) {
+            line.append((char) nextChar);
+            nextChar = br.read();
+          }
+          System.out.println("[Client:" + port + "] " + line.toString());
+        } catch (IOException e) {
+          error("Can't read line");
+          e.printStackTrace();
+        }
+      }
+    }
+  }
 
   public static void log(String message) {
     if (debug) {
@@ -54,7 +87,8 @@ public class Server {
   }
 
   public static void ServerAccept(int port) throws IOException {
-    outputStreams.put(port, new ObjectOutputStream(new ServerSocket(port).accept().getOutputStream()));
+    outputStreams.put(port, new ObjectOutputStream(new ServerSocket(port).accept()
+            .getOutputStream()));
   }
 
   public static void migrate(MigratableProcess ins, int port) throws InterruptedException,
@@ -78,26 +112,33 @@ public class Server {
     return stdin.readLine();
   }
 
-  public static void main(String[] args) throws Exception {
-    for (String arg : args) {
-      int port = Integer.parseInt(arg);
-      log("Waiting for connection on port " + port);
-      ServerAccept(port);
-      log("Accepted connection on port " + port);
-    }
+  private static void addClient(int serverPort, String clientAddress, int clientPort)
+          throws Exception {
+    log("Waiting for connection on port " + serverPort + "...");
+    ServerAccept(serverPort);
+    log("Accepted connection on port " + serverPort + ".");
+    log("Connecting back to client at " + clientAddress + ":" + clientPort + "...");
+    new Thread(new ClientListener(clientAddress, clientPort)).start();
+  }
 
+  public static void main(String[] args) throws Exception {
     String line = prompt();
     while (!line.equals("exit")) {
       String[] stdinArgs = line.split(" ");
       String command = stdinArgs[0];
 
-      if (command.equals("migrate")) {
+      if (command.equals("addClient")) {
         if (stdinArgs.length != 4) {
-          error("usage: migrate <process #> to <port #>");
+          error("usage: addClient <server port> <client address> <client port>");
+        } else {
+          addClient(Integer.parseInt(stdinArgs[1]), stdinArgs[2], Integer.parseInt(stdinArgs[3]));;
         }
-        else {
+      } else if (command.equals("mv")) {
+        if (stdinArgs.length != 3) {
+          error("usage: mv <process #> <port #>");
+        } else {
           try {
-            migrate(processes.get(Integer.parseInt(stdinArgs[1])), Integer.parseInt(stdinArgs[3]));
+            migrate(processes.get(Integer.parseInt(stdinArgs[1])), Integer.parseInt(stdinArgs[2]));
           } catch (IndexOutOfBoundsException e) {
             error("No such process #" + stdinArgs[1]);
           }
@@ -114,6 +155,7 @@ public class Server {
       line = prompt();
     }
 
+    System.exit(0);
   }
 
 }
