@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Client {
   static Socket serverSocket;
@@ -18,7 +19,11 @@ public class Client {
   public static void main(String[] args) throws Exception {
     port = Integer.parseInt(args[1]);
     serverSocket = new Socket(args[0], port);
-    receiveProcesses();
+    try {
+      receiveProcesses();
+    } catch (SocketException e) {
+      log("It appears the server has exited. Exiting as well.");
+    }
   }
 
   public static void receiveProcesses() throws ClassNotFoundException, IOException {
