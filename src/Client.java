@@ -13,11 +13,13 @@ public class Client {
 
   private static boolean debug = true;
 
+  private static int serverPort;
+  
   private static int port;
 
   public static void log(String message) {
     if (debug) {
-      System.out.println("[Client:" + port + "] " + message);
+      System.out.println("[Client:" + serverPort + "] " + message);
     }
   }
 
@@ -38,6 +40,7 @@ public class Client {
   
   public static void main(String[] args) throws Exception {
     port = Integer.parseInt(args[1]);
+    serverPort = port;
     log("Connecting to server at " + args[0] + " on port " + args[1] + "...");
     is = new ObjectInputStream(new Socket(args[0], port).getInputStream());
     // port + 1 so we can easily debug on the same machine
