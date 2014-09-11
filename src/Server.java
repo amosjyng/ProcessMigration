@@ -13,23 +13,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * To be run on the server machine. Spawns processes, takes in user input, and migrates processes to other machines.
+ */
 public class Server {
+  /**
+   * List of processes spawned on the server.
+   */
   public static List<MigratableProcess> processes = new ArrayList<MigratableProcess>();
 
+  /**
+   * The ID of the next process to be created
+   */
   private static int id_count = 0;
 
+  /**
+   * Buffered reader for stdin
+   */
   private static BufferedReader stdin = new java.io.BufferedReader(new java.io.InputStreamReader(
           System.in));
 
+  /**
+   * Whether or not to print statements that illustrate what is going on behind the scenes
+   */
   private static boolean debug = true;
 
+  /**
+   * Output streams for sending serializable objects to client machines
+   */
   private static Map<Integer, ObjectOutputStream> outputStreams = new HashMap<Integer, ObjectOutputStream>();
 
+  /**
+   * Listens to clients sending completion messages back
+   */
   private static class ClientListener implements Runnable {
+    /**
+     * Which port of the client we're listening to
+     */
     private int port;
 
+    /**
+     * Input stream for reading messages from the client
+     */
     private InputStreamReader br;
 
+    /**
+     * Create a ClientListener to listen to task completion messages
+     * @param address Address of the client to listen to
+     * @param port Port of the client to listen to
+     * @throws UnknownHostException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public ClientListener(String address, int port) throws UnknownHostException, IOException, InterruptedException {
       this.port = port;
       // sleep for a bit to allow other machine to start listening
@@ -38,6 +73,9 @@ public class Server {
       Server.log("Connected to client.");
     }
 
+    /**
+     * Start a new thread solely for listening for task completion events from the client
+     */
     @Override
     public void run() {
       while (true) {
@@ -57,25 +95,49 @@ public class Server {
     }
   }
 
+  /**
+   * Prints out a message from the server
+   * @param message What to inform the user off
+   */
   public static void log(String message) {
     if (debug) {
       System.out.println("[Server] " + message);
     }
   }
 
+  /**
+   * Prints out an error from the server
+   * @param message What to notify the user of
+   */
   public static void error(String message) {
     System.err.println("[Server] " + message);
   }
 
+  /**
+   * Add a process to the list of spawned processes
+   * @param mp The process to be added
+   * @return mp
+   */
   public static MigratableProcess addProcess(MigratableProcess mp) {
     processes.add(mp);
     return mp;
   }
 
+  /**
+   * Remove a process from the list of spawned processes
+   * @param mp The process to be removed
+   */
   public static void removeProcess(MigratableProcess mp) {
     processes.remove(mp);
   }
 
+  /**
+   * Create a new thread for a process and store it in the list of spawned processes
+   * @param processName The name of the Class to create a new thread out of
+   * @param args The arguments to the constructor of that class
+   * @return The newly created thread running that process
+   * @throws Exception
+   */
   public static MigratableProcess spawn(String processName, String[] args) throws Exception {
     log("Spawning " + processName + "#" + id_count);
 
@@ -88,11 +150,24 @@ public class Server {
     return ins;
   }
 
+  /**
+   * Create an output for the client to listen to
+   * @param port Which port the client listens on
+   * @throws IOException
+   */
   public static void ServerAccept(int port) throws IOException {
     outputStreams.put(port, new ObjectOutputStream(new ServerSocket(port).accept()
             .getOutputStream()));
   }
 
+  /**
+   * Moves a process from this machine to a client
+   * @param ins The process to be migrated
+   * @param port The port which the client will be listening on (on this machine)
+   * @throws InterruptedException
+   * @throws IOException
+   * @throws ClassNotFoundException
+   */
   public static void migrate(MigratableProcess ins, int port) throws InterruptedException,
           IOException, ClassNotFoundException {
     ObjectOutputStream oos = outputStreams.get(port);
@@ -109,11 +184,23 @@ public class Server {
     oos.reset();
   }
 
+  /**
+   * Asks the user to enter a command
+   * @return The command the user enters
+   * @throws Exception
+   */
   private static String prompt() throws Exception {
     System.out.print("> ");
     return stdin.readLine();
   }
 
+  /**
+   * Connects to a client
+   * @param serverPort The port on the server the client will be listening to for tasks
+   * @param clientAddress The address of the client to connect to
+   * @param clientPort The port on the client to listen to for messages
+   * @throws Exception
+   */
   private static void addClient(int serverPort, String clientAddress, int clientPort)
           throws Exception {
     log("Waiting for connection on port " + serverPort + "...");
@@ -123,6 +210,11 @@ public class Server {
     new Thread(new ClientListener(clientAddress, clientPort)).start();
   }
 
+  /**
+   * Starts the server up
+   * @param args Not used
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
     String line = prompt();
     while (!line.equals("exit")) {
